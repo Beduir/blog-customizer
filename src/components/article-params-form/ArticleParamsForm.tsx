@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   backgroundColors,
   contentWidthArr,
@@ -15,8 +15,10 @@ import { Select } from 'src/ui/select';
 import { Separator } from 'src/ui/separator';
 import { Text } from 'src/ui/text';
 
+import { useSidebarClose } from './hooks/useSidebarClose';
+
 import type { FormEvent } from 'react';
-import type { ArticleStateType } from 'src/constants/articleProps';
+import type { ArticleStateType, OptionType } from 'src/constants/articleProps';
 
 import styles from './ArticleParamsForm.module.scss';
 
@@ -31,20 +33,7 @@ export const ArticleParamsForm = ({
   const [formState, setFormState] = useState(defaultArticleState);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleOutsideClick = (event: MouseEvent): void => {
-      if (event.target instanceof Node && !panelRef.current?.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    return (): void => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [isOpen]);
+  useSidebarClose({ panelRef, isOpen, onClose: () => setIsOpen(false) });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -56,6 +45,12 @@ export const ArticleParamsForm = ({
     setFormState(defaultArticleState);
     onApply(defaultArticleState);
   };
+
+  const handleChange =
+    (key: keyof ArticleStateType) =>
+    (option: OptionType): void => {
+      setFormState((prev) => ({ ...prev, [key]: option }));
+    };
 
   return (
     <div ref={panelRef}>
@@ -72,37 +67,33 @@ export const ArticleParamsForm = ({
             title="Шрифт"
             options={fontFamilyOptions}
             selected={formState.fontFamilyOption}
-            onChange={(fontFamilyOption) =>
-              setFormState({ ...formState, fontFamilyOption })
-            }
+            onChange={handleChange('fontFamilyOption')}
           />
           <RadioGroup
             title="Размер шрифта"
             name="font-size"
             options={fontSizeOptions}
             selected={formState.fontSizeOption}
-            onChange={(fontSizeOption) => setFormState({ ...formState, fontSizeOption })}
+            onChange={handleChange('fontSizeOption')}
           />
           <Select
             title="Цвет шрифта"
             options={fontColors}
             selected={formState.fontColor}
-            onChange={(fontColor) => setFormState({ ...formState, fontColor })}
+            onChange={handleChange('fontColor')}
           />
           <Separator />
           <Select
             title="Цвет фона"
             options={backgroundColors}
             selected={formState.backgroundColor}
-            onChange={(backgroundColor) =>
-              setFormState({ ...formState, backgroundColor })
-            }
+            onChange={handleChange('backgroundColor')}
           />
           <Select
             title="Ширина контента"
             options={contentWidthArr}
             selected={formState.contentWidth}
-            onChange={(contentWidth) => setFormState({ ...formState, contentWidth })}
+            onChange={handleChange('contentWidth')}
           />
           <div className={styles.bottomContainer}>
             <Button title="Сбросить" htmlType="reset" type="clear" />
