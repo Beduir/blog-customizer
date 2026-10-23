@@ -1,6 +1,8 @@
 import { clsx } from 'clsx';
 import arrow from 'src/images/arrow.svg';
 
+import type { KeyboardEvent } from 'react';
+
 import styles from './ArrowButton.module.scss';
 
 /** Функция для обработки открытия/закрытия формы */
@@ -15,6 +17,13 @@ export const ArrowButton = ({
   isOpen,
   onClick,
 }: ArrowButtonProps): React.JSX.Element => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (!event.repeat) onClick();
+    }
+  };
+
   return (
     /* Не забываем указаывать role и aria-label атрибуты для интерактивных элементов */
     <div
@@ -23,6 +32,7 @@ export const ArrowButton = ({
       tabIndex={0}
       className={clsx(styles.container, { [styles.container_open]: isOpen })}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
     >
       <img
         src={arrow}
